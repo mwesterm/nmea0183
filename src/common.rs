@@ -1,3 +1,14 @@
+pub(crate) fn parse_i8(input: Option<&str>) -> Result<Option<i8>, &'static str> {
+    match input {
+        Some(s) if s.len() == 0 => Ok(None),
+        Some(s) => s
+            .parse::<i8>()
+            .map_err(|_| "Wrong signed int field format")
+            .and_then(|u| Ok(Some(u))),
+        None => Ok(None),
+    }
+}
+
 pub(crate) fn parse_u8(input: Option<&str>) -> Result<Option<u8>, &'static str> {
     match input {
         Some(s) if s.len() == 0 => Ok(None),

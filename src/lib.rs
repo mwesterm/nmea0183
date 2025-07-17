@@ -95,6 +95,7 @@ pub(crate) mod modes;
 pub(crate) mod mtk;
 pub(crate) mod rmc;
 pub(crate) mod vtg;
+pub(crate) mod zda;
 
 pub use gga::GPSQuality;
 pub use gga::GGA;
@@ -111,6 +112,8 @@ pub use mtk::MTKPacketType;
 pub use mtk::PMTKSPF;
 pub use rmc::RMC;
 pub use vtg::VTG;
+pub use zda::ZDA;
+
 /// Source of NMEA sentence like GPS, GLONASS or other.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Source {
@@ -201,6 +204,8 @@ pub enum Sentence {
     GSV = 0b100000,
     /// GPS DOP and active satellites.
     GSA = 0b1000000,
+    /// Current Date and Time.
+    ZDA = 0b10000000,
 }
 
 impl TryFrom<&str> for Sentence {
@@ -216,6 +221,8 @@ impl TryFrom<&str> for Sentence {
             #[cfg(feature = "mtk")]
             "PMTK" => Ok(Sentence::PMTK),
             "GSA" => Ok(Sentence::GSA),
+            "ZDA" => Ok(Sentence::ZDA),
+
             _ => Err("Unsupported sentence type."),
         }
     }
@@ -278,6 +285,8 @@ pub enum ParseResult {
     PMTK(Option<PMTKSPF>),
     /// The GPS DOP and active satellites. Provides information about the DOP and the active satellites used for the current fix.
     GSA(Option<GSA>),
+    /// Current Date and Time.
+    ZDA(Option<ZDA>),
 }
 
 #[cfg(feature = "strict")]
@@ -462,6 +471,8 @@ impl Parser {
             Sentence::VTG => Ok(Some(ParseResult::VTG(VTG::parse(source, &mut iter)?))),
             Sentence::GSV => Ok(Some(ParseResult::GSV(GSV::parse(source, &mut iter)?))),
             Sentence::GSA => Ok(Some(ParseResult::GSA(GSA::parse(source, &mut iter)?))),
+            Sentence::ZDA => Ok(Some(ParseResult::ZDA(ZDA::parse(source, &mut iter)?))),
+
             #[cfg(feature = "mtk")]
             Sentence::PMTK => {
                 if sentence_field.len() < 7 {

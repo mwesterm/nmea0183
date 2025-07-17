@@ -430,6 +430,64 @@ fn test_correct_gsa() {
 }
 
 #[test]
+fn test_correct_zda() {
+    let mut p = Parser::new();
+    let b = b"$GNZDA,181604.456,12,09,2018,-01,15*6C\r\n";
+    {
+        let mut iter = p.parse_from_bytes(&b[..]);
+        let zda = match iter.next().unwrap().unwrap() {
+            ParseResult::ZDA(Some(zda)) => zda,
+            _ => {
+                panic!("Unexpected ParseResult variant while parsing GSA data.");
+            }
+        };
+        assert_eq!(zda.source, Source::GNSS);
+        assert_eq!(
+            zda.time,
+            datetime::Time {
+                hours: 18,
+                minutes: 16,
+                seconds: 04.456
+            }
+        );
+        assert_eq!(zda.day, 12);
+        assert_eq!(zda.month, 9);
+        assert_eq!(zda.year, 2018);
+        assert_eq!(zda.offset_hours, Some(-1));
+        assert_eq!(zda.offset_minutes, Some(15));
+    }
+}
+
+#[test]
+fn test_correct_zda_2() {
+    let mut p = Parser::new();
+    let b = b"$GNZDA,181604.456,12,09,2018,,*44\r\n";
+    {
+        let mut iter = p.parse_from_bytes(&b[..]);
+        let zda = match iter.next().unwrap().unwrap() {
+            ParseResult::ZDA(Some(zda)) => zda,
+            _ => {
+                panic!("Unexpected ParseResult variant while parsing GSA data.");
+            }
+        };
+        assert_eq!(zda.source, Source::GNSS);
+        assert_eq!(
+            zda.time,
+            datetime::Time {
+                hours: 18,
+                minutes: 16,
+                seconds: 04.456
+            }
+        );
+        assert_eq!(zda.day, 12);
+        assert_eq!(zda.month, 9);
+        assert_eq!(zda.year, 2018);
+        assert_eq!(zda.offset_hours, None);
+        assert_eq!(zda.offset_minutes, None);
+    }
+}
+
+#[test]
 fn test_parser_iterator() {
     let mut p = Parser::new();
     let b = b"$GPRMC,125504.049,A,5542.2389,N,03741.6063,E,0.06,25.82,200906,,,A*56\r\n";
